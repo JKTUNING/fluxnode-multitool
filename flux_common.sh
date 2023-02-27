@@ -2466,6 +2466,11 @@ function selfhosting() {
 	  if [[ "$device_name" != "" && "$WANIP" != "" ]]; then
 		date_timestamp=$(date '+%Y-%m-%d %H:%M:%S')
 		echo -e "New IP detected during $1, IP: $WANIP was added to $device_name at $date_timestamp" >> /home/$USER/ip_history.log
+		for i in $(ip --oneline addr show ${device_name} | grep "/32" | awk '{print $4}'); 
+		do
+			[[ $i == "${WANIP}/32"  ]] && exit 0
+			sudo ip addr del $i dev $device_name
+		done
 		sudo ip addr add $WANIP dev $device_name && sleep 2
 	  fi
 	fi
@@ -2481,6 +2486,11 @@ function selfhosting() {
 		 if [[ "$WANIP" != "$confirmed_ip" ]]; then
 			date_timestamp=$(date '+%Y-%m-%d %H:%M:%S')
 			echo -e "New IP detected during $1, IP: $WANIP was added to $device_name at $date_timestamp" >> /home/$USER/ip_history.log
+			for i in $(ip --oneline addr show ${device_name} | grep "/32" | awk '{print $4}'); 
+			do
+				[[ $i == "${WANIP}/32"  ]] && exit 0
+				sudo ip addr del $i dev $device_name
+			done
 			sudo ip addr add $WANIP dev $device_name && sleep 2
 		 fi
 	  fi
