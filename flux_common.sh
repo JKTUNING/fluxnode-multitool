@@ -2439,62 +2439,48 @@ function selfhosting() {
 	sudo chown $USER:$USER /home/$USER/ip_check.sh
 	cat <<-'EOF' > /home/$USER/ip_check.sh
 	#!/bin/bash
-
-	function get_ip(){
-	WANIP=$(curl --silent -m 10 https://api4.my-ip.io/ip | tr -dc '[:alnum:].')
-	if [[ "$WANIP" == "" || "$WANIP" = *html* ]]; then
-	  WANIP=$(curl --silent -m 10 https://checkip.amazonaws.com | tr -dc '[:alnum:].')    
-	fi    
-	if [[ "$WANIP" == "" || "$WANIP" = *html* ]]; then
-	  WANIP=$(curl --silent -m 10 https://api.ipify.org | tr -dc '[:alnum:].')
-	fi
-	}
-
-	function get_device_name(){
-		if [[ -f /home/$USER/device_conf.json ]]; then
-			device_name=$(jq -r .device_name /home/$USER/device_conf.json)
-		else
-			device_name=$(ip addr | grep 'BROADCAST,MULTICAST,UP,LOWER_UP' | head -n1 | awk '{print $2}' | sed 's/://' | sed 's/@/ /' | awk '{print $1}')
-		fi
-	}
-
-	if [[ $1 == "restart" ]]; then
-	  #give 3min to connect with internet
-	  sleep 180
-		get_ip
-		get_device_name
-	  if [[ "$device_name" != "" && "$WANIP" != "" ]]; then
-		date_timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-		echo -e "New IP detected during $1, IP: $WANIP was added to $device_name at $date_timestamp" >> /home/$USER/ip_history.log
-		for i in $(ip --oneline addr show ${device_name} | grep "/32" | awk '{print $4}'); 
-		do
-			[[ $i == "${WANIP}/32"  ]] && exit 0
-			sudo ip addr del $i dev $device_name
-		done
-		sudo ip addr add $WANIP dev $device_name && sleep 2
-	  fi
-	fi
-	if [[ $1 == "ip_check" ]]; then
-	  get_ip
-	  get_device_name
-	  api_port=$(grep -w apiport /home/$USER/zelflux/config/userconfig.js | grep -o '[[:digit:]]*')
-	  if [[ "$api_port" == "" ]]; then
-		api_port="16127"
-	  fi
-	  confirmed_ip=$(curl -SsL -m 10 http://localhost:$api_port/flux/info 2>/dev/null | jq -r .data.node.status.ip | sed -r 's/:.+//')
-	  if [[ "$WANIP" != "" && "$confirmed_ip" != "" && "$confirmed_ip" != "null" ]]; then
-		 if [[ "$WANIP" != "$confirmed_ip" ]]; then
-			date_timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-			echo -e "New IP detected during $1, IP: $WANIP was added to $device_name at $date_timestamp" >> /home/$USER/ip_history.log
-			for i in $(ip --oneline addr show ${device_name} | grep "/32" | awk '{print $4}'); 
-			do
-				[[ $i == "${WANIP}/32"  ]] && exit 0
-				sudo ip addr del $i dev $device_name
-			done
-			sudo ip addr add $WANIP dev $device_name && sleep 2
-		 fi
-	  fi
-	fi
+	
+function get_ip(){
+  WANIP=$(curl --silent -m 10 https://api4.my-ip.io/ip | tr -dc '[:alnum:].')
+  if [[ "$WANIP" == "" || "$WANIP" = *html* ]]; then
+    WANIP=$(curl --silent -m 10 https://checkip.amazonaws.com | tr -dc '[:alnum:].')
+  fi
+  if [[ "$WANIP" == "" || "$WANIP" = *html* ]]; then
+    WANIP=$(curl --silent -m 10 https://api.ipify.org | tr -dc '[:alnum:].')
+  fi
+}
+function get_device_name(){
+  if [[ -f /home/$USER/device_conf.json ]]; then
+    device_name=$(jq -r .device_name /home/$USER/device_conf.json)
+  else
+    device_name=$(ip addr | grep 'BROADCAST,MULTICAST,UP,LOWER_UP' | head -n1 | awk '{print $2}' | sed 's/://' | sed 's/@/ /' | awk '{print $1}')
+  fi
+}
+function update_ip(){
+  ip_exists="0"
+  get_ip
+  get_device_name
+  if [[ "$device_name" != "" && "$WANIP" != "" ]]; then
+    for i in $(ip --oneline addr show ${device_name} | grep "/32" | awk '{print $4}');
+    do
+      if [[ $i == "${WANIP}/32"  ]]; then
+        ip_exists="1"
+      else
+        sudo ip addr del $i dev $device_name
+      fi
+    done
+    if [[ "$ip_exists" == "0" ]]; then
+      date_timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+      echo -e "New IP detected during $1, IP: $WANIP was added to $device_name at $date_timestamp" >> /home/$USER/ip_history.log
+      sudo ip addr add $WANIP dev $device_name && sleep 2
+    fi
+  fi
+}
+if [[ $1 == "restart" ]]; then
+  #give 3min to connect with internet
+  sleep 180
+fi
+update_ip $1
 	EOF
 	sudo chmod +x /home/$USER/ip_check.sh
 	sudo [ -f /var/spool/cron/crontabs/$USER ] && crontab_check=$(sudo cat /var/spool/cron/crontabs/$USER | grep -o ip_check | wc -l) || crontab_check=0
