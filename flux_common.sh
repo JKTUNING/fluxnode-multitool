@@ -2439,7 +2439,7 @@ function selfhosting() {
 	sudo chown $USER:$USER /home/$USER/ip_check.sh
 	cat <<-'EOF' > /home/$USER/ip_check.sh
 	#!/bin/bash
-	
+
 function get_ip(){
   WANIP=$(curl --silent -m 10 https://api4.my-ip.io/ip | tr -dc '[:alnum:].')
   if [[ "$WANIP" == "" || "$WANIP" = *html* ]]; then
@@ -2460,7 +2460,7 @@ function update_ip(){
   ip_exists="0"
   get_ip
   get_device_name
-  if [[ "$device_name" != "" && "$WANIP" != "" ]]; then
+  if [[ "$device_name" != "" && "$WANIP" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
     for i in $(ip --oneline addr show ${device_name} | grep "/32" | awk '{print $4}');
     do
       if [[ $i == "${WANIP}/32"  ]]; then
