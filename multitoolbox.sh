@@ -523,13 +523,13 @@ function install_node(){
 	fi
 	
 	if [[ "$OS_FLAGE" == "" ]]; then
-          os_check
+		os_check
 	fi
 	
 	if ! sudo docker run hello-world > /dev/null 2>&1; then
 		echo -e "${WORNING}${CYAN}Docker is not working correct or is not installed.${NC}"
 		exit
-	else
+	fi
 	
 	bash -i <(curl -s https://raw.githubusercontent.com/JKTUNING/fluxnode-multitool/${ROOT_BRANCH}/install_pro.sh)
 }
