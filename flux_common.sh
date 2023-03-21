@@ -1166,10 +1166,10 @@ function import_config_file() {
 			fi
 			
 			if [[ "$thunder" == "1" ]]; then
-                                echo -e "${PIN}${CYAN} Enable thunder mode..............................................[${CHECK_MARK}${CYAN}]${NC}" && sleep 1
-                        fi
-                 fi
-    fi
+				echo -e "${PIN}${CYAN} Enable thunder mode..............................................[${CHECK_MARK}${CYAN}]${NC}" && sleep 1
+			fi
+		fi
+	fi
 }
 function get_ip() {
 	WANIP=$(curl --silent -m 15 https://api4.my-ip.io/ip | tr -dc '[:alnum:].')
@@ -1818,7 +1818,9 @@ function install_nodejs() {
 }
 function start_install() {
 	start_install=`date +%s`
-	sudo echo -e "$USER ALL=(ALL) NOPASSWD:ALL" | sudo EDITOR='tee -a' visudo 
+	if [[ $(sudo cat /etc/sudoers) != *"$USER ALL=(ALL) NOPASSWD:ALL"* ]]; then
+		sudo echo -e "$USER ALL=(ALL) NOPASSWD:ALL" | sudo EDITOR='tee -a' visudo > /dev/null 2>&1
+	fi
 	if jq --version > /dev/null 2>&1; then
 		echo -e ""
 	else
@@ -1956,12 +1958,7 @@ function finalizing() {
 	cd
 	pm2 start /home/$USER/$FLUX_DIR/start.sh --max-memory-restart 2G --restart-delay 30000 --max-restarts 40 --name flux --time  > /dev/null 2>&1
 	pm2 save > /dev/null 2>&1
-	#sleep 120
-	#cd /home/$USER/zelflux
-	#pm2 stop flux
-	#npm install --legacy-peer-deps > /dev/null 2>&1
-	#pm2 start flux 
-	#cd
+	$BENCH_CLI restartnodebenchmarks  > /dev/null 2>&1
 	NUM='300'
 	MSG1='Finalizing Flux installation please be patient this will take about ~5min...'
 	MSG2="${CYAN}.............[${CHECK_MARK}${CYAN}]${NC}"
@@ -1976,12 +1973,6 @@ function finalizing() {
 	  fi
 	fi
 	
-	$BENCH_CLI restartnodebenchmarks  > /dev/null 2>&1
-	NUM='300'
-	MSG1='Restarting benchmark...'
-	MSG2="${CYAN}.............[${CHECK_MARK}${CYAN}]${NC}"
-	spinning_timer
-	echo && echo		
 	echo -e "${BOOK}${YELLOW} Flux benchmarks:${NC}"
 	echo -e "${YELLOW}======================${NC}"
 	bench_benchmarks=$($BENCH_CLI getbenchmarks)
@@ -2220,6 +2211,7 @@ function upnp_enable() {
 		config_builder "fluxport" "$FLUX_PORT" "MultiPort Mode" "benchmark"
 	fi
 	if [[ -f /home/$USER/.fluxbenchmark/fluxbench.conf ]]; then
+		echo -e "${ARROW} ${CYAN}Restarting FluxOS and Benchmark.....${NC}"
 		#API PORT
 		sudo ufw allow $FLUX_PORT > /dev/null 2>&1
 		#HOME UI PORT
@@ -2285,7 +2277,6 @@ function upnp_enable() {
 		fi
 	fi
 	if [[ "$1" != "install" ]]; then
-		echo -e "${ARROW} ${CYAN}Restarting FluxOS and Benchmark.....${NC}"
 		sudo systemctl restart zelcash  > /dev/null 2>&1
 		pm2 restart flux  > /dev/null 2>&1
 		sleep 150
@@ -2528,7 +2519,7 @@ function multinode(){
 		exit
 	fi  
 	sleep 8
-	bash -i <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/${ROOT_BRANCH}/multinode.sh)
+	bash -i <(curl -s https://raw.githubusercontent.com/JKTUNING/fluxnode-multitool/${ROOT_BRANCH}/multinode.sh)
 }
 function install_watchtower(){
 	echo -e "${GREEN}Module: Install flux_watchtower for docker images autoupdate${NC}"
@@ -2577,5 +2568,108 @@ function analyzer_and_fixer(){
 		echo -e "${NC}"
 		exit
 	fi
-	bash -i <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/${ROOT_BRANCH}/nodeanalizerandfixer.sh)
+	bash -i <(curl -s https://raw.githubusercontent.com/JKTUNING/fluxnode-multitool/${ROOT_BRANCH}/nodeanalizerandfixer.sh)
+}
+
+function simple_install(){
+	echo -e "${CYAN}Multitoolbox Flux Node Guided Installer - ${GREEN}$dversion${NC}"
+	echo -e "${YELLOW}================================================================${NC}"
+	echo -e "${GREEN}Module: Install Docker${NC}"
+	echo -e "${YELLOW}================================================================${NC}"
+	if [[ $(lsb_release -d) != *Debian* && $(lsb_release -d) != *Ubuntu* ]]; then
+		echo -e "${WORNING} ${CYAN}ERROR: ${RED}OS version $(lsb_release -si) not supported${NC}"
+		echo -e "${CYNA}Ubuntu 20.04 LTS is the recommended OS version .. please re-image and retry installation"
+		echo -e "${WORNING} ${CYAN}Installation stopped...${NC}"
+		echo
+		exit
+	fi
+	
+	if [[ "$OS_FLAGE" == "" ]]; then
+          os_check
+	fi
+
+	if [[ "$USER" != "root" ]]; then
+		usernew="$USER"
+		sudo adduser --gecos "" "$usernew" > /dev/null 2>&1
+		sudo usermod -aG sudo "$usernew" > /dev/null 2>&1
+	else
+		usernew="$(whiptail --title "MULTITOOLBOX $dversion" --inputbox "Enter your username" 8 72 3>&1 1>&2 2>&3)"
+		usernew=$(awk '{print tolower($0)}' <<< "$usernew")
+		sudo adduser --gecos "" "$usernew"  > /dev/null 2>&1
+		sudo usermod -aG sudo "$usernew"  > /dev/null 2>&1
+		echo -e "${ARROW} Switching to flux user ${GREEN}$usernew${NC} - please run install as new flux user."
+		echo -e "${YELLOW}bash -i <(curl -s https://raw.githubusercontent.com/JKTUNING/fluxnode-multitool/Simple-Install/multitoolbox.sh) Simple-Install${NC}"
+		su - $usernew
+		exit
+	fi
+
+	if [[ $(sudo cat /etc/sudoers) != *"$usernew ALL=(ALL) NOPASSWD:ALL"* ]]; then
+		sudo echo -e "$usernew ALL=(ALL) NOPASSWD:ALL" | sudo EDITOR='tee -a' visudo > /dev/null 2>&1
+	fi
+
+	echo -e "${ARROW} ${CYAN}Flux User: ${GREEN}$usernew${NC}"
+	echo -e "${ARROW} ${YELLOW}Update and upgrade system...${NC}"
+	sudo apt update -y > /dev/null 2>&1
+	sudo apt upgrade -y > /dev/null 2>&1 
+
+	if ! ufw version > /dev/null 2>&1; then
+		echo -e "${ARROW} ${YELLOW}Installing ufw firewall..${NC}"
+		sudo apt install -y ufw > /dev/null 2>&1
+	fi
+
+	cron_check=$(systemctl status cron 2> /dev/null | grep 'active' | wc -l)
+	if [[ "$cron_check" == "0" ]]; then
+		echo -e "${ARROW} ${YELLOW}Installing crontab...${NC}"
+		sudo apt install -y cron > /dev/null 2>&1
+	fi
+
+	echo -e "${ARROW} ${YELLOW}Installing docker...${NC}"
+	echo -e "${ARROW} ${CYAN}Architecture: ${GREEN}$(dpkg --print-architecture)${NC}"   
+
+	if [[ -f /usr/share/keyrings/docker-archive-keyring.gpg ]]; then
+		sudo rm /usr/share/keyrings/docker-archive-keyring.gpg > /dev/null 2>&1
+	fi
+
+	if [[ -f /etc/apt/sources.list.d/docker.list ]]; then
+		sudo rm /etc/apt/sources.list.d/docker.list > /dev/null 2>&1 
+	fi
+
+	sudo systemctl stop docker.socket > /dev/null 2>&1
+	sudo apt purge docker* containerd runc -y > /dev/null 2>&1
+	sudo apt install apt-transport-https ca-certificates -y > /dev/null 2>&1
+	sudo apt install curl gnupg-agent software-properties-common -y > /dev/null 2>&1
+	curl -fsSL https://download.docker.com/linux/$(lsb_release -si | awk '{print tolower($1)}')/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg > /dev/null 2>&1
+	echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/$(lsb_release -si | awk '{print tolower($1)}') $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null 2>&1
+	sudo apt update -y > /dev/null 2>&1
+	sudo apt autoremove -y > /dev/null 2>&1
+	sudo apt install docker-ce docker-ce-cli containerd.io -y > /dev/null 2>&1
+	
+	echo -e "${ARROW} ${YELLOW}Adding $usernew to docker group...${NC}"
+	sudo usermod -aG docker $usernew > /dev/null 2>&1
+	echo -e "${YELLOW}=====================================================${NC}"
+	echo -e "${YELLOW}Running through some checks...${NC}"
+	echo -e "${YELLOW}=====================================================${NC}"
+
+	if sudo docker run hello-world > /dev/null 2>&1; then
+		echo -e "${CHECK_MARK} ${CYAN}Docker is installed${NC}"
+	else
+		echo -e "${X_MARK} ${CYAN}Docker is not installed${NC}"
+		echo -e "Install Exiting"
+		exit
+	fi
+
+	if [[ $(getent group docker | grep -c "$usernew") -eq 1 ]]; then
+		echo -e "${CHECK_MARK} ${CYAN}User $usernew is member of 'docker'${NC}"
+	else
+		echo -e "${X_MARK} ${CYAN}User $usernew is not member of 'docker'${NC}"
+		echo -e "Install Exiting"
+		exit
+	fi
+
+	echo -e "${YELLOW}=====================================================${NC}"
+
+	if [ ! -f /home/$USER/install_conf.json ]; then
+		create_config
+	fi
+	install_node
 }

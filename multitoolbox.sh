@@ -6,7 +6,7 @@ if ! [[ -z $1 ]]; then
 	if [[ $BRANCH_ALREADY_REFERENCED != '1' ]]; then
 	export ROOT_BRANCH="$1"
 	export BRANCH_ALREADY_REFERENCED='1'
-	bash -i <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/$ROOT_BRANCH/multitoolbox.sh) $ROOT_BRANCH $2
+	bash -i <(curl -s https://raw.githubusercontent.com/JKTUNING/fluxnode-multitool/$ROOT_BRANCH/multitoolbox.sh) $ROOT_BRANCH $2
 	unset ROOT_BRANCH
 	unset BRANCH_ALREADY_REFERENCED
 	set -o history
@@ -17,7 +17,7 @@ else
 fi
 
 
-source /dev/stdin <<< "$(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/$ROOT_BRANCH/flux_common.sh)"
+source /dev/stdin <<< "$(curl -s https://raw.githubusercontent.com/JKTUNING/fluxnode-multitool/$ROOT_BRANCH/flux_common.sh)"
 if [[ -d /home/$USER/.zelcash ]]; then
 	CONFIG_DIR='.zelcash'
 	CONFIG_FILE='zelcash.conf'
@@ -289,13 +289,12 @@ function create_config() {
  "2)" "Auto - import exists settings"  3>&2 2>&1 1>&3 )
 		case $CHOICE in
 		"1)")
-                manual_build
+    	manual_build
 		;;
 		"2)")
-		config_smart_create
+			config_smart_create
 		;;
-	        esac
-
+	  esac
 }
 
 
@@ -323,7 +322,7 @@ function install_watchdog() {
 	echo -e "${ARROW} ${CYAN}Downloading...${NC}"
 	cd && git clone https://github.com/RunOnFlux/fluxnode-watchdog.git watchdog > /dev/null 2>&1
 	echo -e "${ARROW} ${CYAN}Installing git hooks....${NC}"
-	wget https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/$ROOT_BRANCH/post-merge > /dev/null 2>&1
+	wget https://raw.githubusercontent.com/JKTUNING/fluxnode-multitool/$ROOT_BRANCH/post-merge > /dev/null 2>&1
 	mv post-merge /home/$USER/watchdog/.git/hooks/post-merge
 	sudo chmod +x /home/$USER/watchdog/.git/hooks/post-merge
 	echo -e "${ARROW} ${CYAN}Installing watchdog module....${NC}"
@@ -527,13 +526,12 @@ function install_node(){
           os_check
 	fi
 	
-	if sudo docker run hello-world > /dev/null 2>&1; then
-		echo -e ""
-	else
+	if ! sudo docker run hello-world > /dev/null 2>&1; then
 		echo -e "${WORNING}${CYAN}Docker is not working correct or is not installed.${NC}"
 		exit
-	fi
-	bash -i <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/${ROOT_BRANCH}/install_pro.sh)
+	else
+	
+	bash -i <(curl -s https://raw.githubusercontent.com/JKTUNING/fluxnode-multitool/${ROOT_BRANCH}/install_pro.sh)
 }
 function install_docker(){
 	echo -e "${GREEN}Module: Install Docker${NC}"
@@ -823,10 +821,10 @@ if ! whiptail -v > /dev/null 2>&1; then
 fi
 
 if [[ $(cat /etc/bash.bashrc | grep 'multitoolbox' | wc -l) == "0" ]]; then
-	echo "alias multitoolbox='bash -i <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/master/multitoolbox.sh)'" | sudo tee -a /etc/bash.bashrc
-	echo "alias multitoolbox_testnet='bash -i <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/master/multitoolbox_testnet.sh)'" | sudo tee -a /etc/bash.bashrc
-	alias multitoolbox='bash -i <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/master/multitoolbox.sh)'
-	alias multitoolbox_testnet='bash -i <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/master/multitoolbox_testnet.sh)'
+	echo "alias multitoolbox='bash -i <(curl -s https://raw.githubusercontent.com/JKTUNING/fluxnode-multitool/master/multitoolbox.sh)'" | sudo tee -a /etc/bash.bashrc
+	echo "alias multitoolbox_testnet='bash -i <(curl -s https://raw.githubusercontent.com/JKTUNING/fluxnode-multitool/master/multitoolbox_testnet.sh)'" | sudo tee -a /etc/bash.bashrc
+	alias multitoolbox='bash -i <(curl -s https://raw.githubusercontent.com/JKTUNING/fluxnode-multitool/master/multitoolbox.sh)'
+	alias multitoolbox_testnet='bash -i <(curl -s https://raw.githubusercontent.com/JKTUNING/fluxnode-multitool/master/multitoolbox_testnet.sh)'
 	source /etc/bash.bashrc
 fi
 
@@ -859,6 +857,7 @@ echo -e "${CYAN}12 - Install fluxwatchtower for docker images autoupdate${NC}"
 echo -e "${CYAN}13 - MongoDB FiX action${NC}"
 echo -e "${CYAN}14 - Multinode configuration with UPNP communication (Needs Router with UPNP support)  ${NC}"
 echo -e "${CYAN}15 - Node reconfiguration from install config${NC}"
+echo -e "${CYAN}16 - Test Simple Install${NC}"
 echo -e "${YELLOW}================================================================${NC}"
 
 read -rp "Pick an option and hit ENTER: "
@@ -953,6 +952,12 @@ case "$REPLY" in
 	node_reconfiguration
 	echo -e ""
  ;;
+ 16)
+	clear
+	sleep 1
+	simple_install
+	echo -e ""
+	;;
 esac
 # USED FOR CLEANUP AT END OF SCRIPT
 unset ROOT_BRANCH
