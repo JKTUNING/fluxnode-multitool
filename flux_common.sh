@@ -2614,6 +2614,10 @@ function simple_install(){
 	fi
 
 	echo -e "${ARROW} ${CYAN}Flux User: ${GREEN}$usernew${NC}"
+	echo -e "${ARROW} ${CYAN}OS: ${GREEN}$os_description${NC}"
+	echo -e "${ARROW} ${CYAN}OS Short: ${GREEN}$os_shortname${NC}"
+	echo -e "${ARROW} ${CYAN}OS Codename: ${GREEN}$os_codename${NC}"
+	echo -e "${ARROW} ${CYAN}Arch: ${GREEN}$arch${NC}"
 	echo -e "${ARROW} ${YELLOW}Update and upgrade system...${NC}"
 	sudo apt update -y > /dev/null 2>&1
 	sudo apt upgrade -y > /dev/null 2>&1 
