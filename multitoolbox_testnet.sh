@@ -909,7 +909,7 @@ fi
 
 if [[ $(lsb_release -d) != *Debian* && $(lsb_release -d) != *Ubuntu* ]]; then
 
-	echo -e "${WORNING} ${CYAN}ERROR: ${RED}OS version $(lsb_release -si) not supported${NC}"
+	echo -e "${WORNING} ${CYAN}ERROR: ${RED}OS version $os_shortname not supported${NC}"
 	echo -e "${CYNA}Ubuntu 20.04 LTS is the recommended OS version .. please re-image and retry installation"
 	echo -e "${WORNING} ${CYAN}Installation stopped...${NC}"
 	echo
@@ -950,7 +950,7 @@ fi
 
 if [[ $(lsb_release -d) != *Debian* && $(lsb_release -d) != *Ubuntu* ]]; then
 
-	echo -e "${WORNING} ${CYAN}ERROR: ${RED}OS version $(lsb_release -si) not supported${NC}"
+	echo -e "${WORNING} ${CYAN}ERROR: ${RED}OS version $os_shortname not supported${NC}"
 	echo -e "${CYNA}Ubuntu 20.04 LTS is the recommended OS version .. please re-image and retry installation"
 	echo -e "${WORNING} ${CYAN}Installation stopped...${NC}"
 	echo
@@ -975,7 +975,7 @@ echo -e "${ARROW} ${YELLOW}Installing ufw firewall..${NC}"
 sudo apt-get install -y ufw > /dev/null 2>&1
 fi
 echo -e "${ARROW} ${YELLOW}Installing docker...${NC}"
-echo -e "${ARROW} ${CYAN}Architecture: ${GREEN}$(dpkg --print-architecture)${NC}"
+echo -e "${ARROW} ${CYAN}Architecture: ${GREEN}$arch${NC}"
            
 if [[ -f /usr/share/keyrings/docker-archive-keyring.gpg ]]; then
     sudo rm /usr/share/keyrings/docker-archive-keyring.gpg > /dev/null 2>&1
@@ -994,9 +994,9 @@ sudo apt-get update -y  > /dev/null 2>&1
 sudo apt-get -y install apt-transport-https ca-certificates > /dev/null 2>&1 
 sudo apt-get -y install curl gnupg-agent software-properties-common > /dev/null 2>&1
 #curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add - > /dev/null 2>&1
-#sudo add-apt-repository -y "deb [arch=amd64,arm64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" > /dev/null 2>&1
+#sudo add-apt-repository -y "deb [arch=amd64,arm64] https://download.docker.com/linux/debian $os_codename stable" > /dev/null 2>&1
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg > /dev/null 2>&1
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null 2>&1
+echo "deb [arch=$arch signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/$os_shortname $os_codename stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null 2>&1
 sudo apt-get update -y  > /dev/null 2>&1
 sudo apt-get install docker-ce docker-ce-cli containerd.io -y > /dev/null 2>&1  
 
@@ -1006,10 +1006,10 @@ sudo apt-get remove docker docker-engine docker.io containerd runc -y > /dev/nul
 sudo apt-get -y install apt-transport-https ca-certificates > /dev/null 2>&1  
 sudo apt-get -y install curl gnupg-agent software-properties-common > /dev/null 2>&1  
 
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg > /dev/null 2>&1
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null 2>&1
-#curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - > /dev/null 2>&1
-#sudo add-apt-repository -y "deb [arch=amd64,arm64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /dev/null 2>&1
+curl -fsSL https://download.docker.com/linux/$os_shortname/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg > /dev/null 2>&1
+echo "deb [arch=$arch signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/$os_shortname $os_codename stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null 2>&1
+#curl -fsSL https://download.docker.com/linux/$os_shortname/gpg | sudo apt-key add - > /dev/null 2>&1
+#sudo add-apt-repository -y "deb [arch=amd64,arm64] https://download.docker.com/linux/$os_shortname $os_codename stable" > /dev/null 2>&1
 sudo apt-get update -y  > /dev/null 2>&1
 sudo apt-get install docker-ce docker-ce-cli containerd.io -y > /dev/null 2>&1
 
@@ -1190,7 +1190,7 @@ echo -e "" && echo -e ""
   sudo systemctl stop zelcash > /dev/null 2>&1
  
 
-if [[ $(dpkg --print-architecture) = *amd* ]]; then
+if [[ $arch = *amd* ]]; then
 
   echo -e "${ARROW} ${CYAN}Downloading file...${NC}" 
   sudo wget https://github.com/RunOnFlux/fluxd/releases/download/halving-test-2/Flux-Linux-halving.tar.gz -P /tmp > /dev/null 2>&1
