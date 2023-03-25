@@ -2618,6 +2618,8 @@ function simple_install(){
 	echo -e "${ARROW} ${CYAN}OS Short: ${GREEN}$os_shortname${NC}"
 	echo -e "${ARROW} ${CYAN}OS Codename: ${GREEN}$os_codename${NC}"
 	echo -e "${ARROW} ${CYAN}Arch: ${GREEN}$arch${NC}"
+	echo -e "${YELLOW}================================================================${NC}"
+
 	echo -e "${ARROW} ${YELLOW}Update and upgrade system...${NC}"
 	sudo apt update -y > /dev/null 2>&1
 	sudo apt upgrade -y > /dev/null 2>&1 
