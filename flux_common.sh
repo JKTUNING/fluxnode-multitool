@@ -2580,8 +2580,6 @@ function analyzer_and_fixer(){
 function simple_install(){
 	echo -e "${CYAN}Multitoolbox Flux Node Guided Installer - ${GREEN}$dversion${NC}"
 	echo -e "${YELLOW}================================================================${NC}"
-	echo -e "${GREEN}Module: Install Docker${NC}"
-	echo -e "${YELLOW}================================================================${NC}"
 	if [[ $os_shortname != "debian" && $os_shortname != "ubuntu" ]]; then
 		echo -e "${WORNING} ${CYAN}ERROR: ${RED}OS version $os_shortname not supported${NC}"
 		echo -e "${CYNA}Ubuntu 20.04 LTS is the recommended OS version .. please re-image and retry installation"
@@ -2613,6 +2611,8 @@ function simple_install(){
 		sudo echo -e "$usernew ALL=(ALL) NOPASSWD:ALL" | sudo EDITOR='tee -a' visudo > /dev/null 2>&1
 	fi
 
+	echo -e "${GREEN}Module: Gather Device Info${NC}"
+	echo -e "${YELLOW}================================================================${NC}"
 	echo -e "${ARROW} ${CYAN}Flux User: ${GREEN}$usernew${NC}"
 	echo -e "${ARROW} ${CYAN}OS: ${GREEN}$os_description${NC}"
 	echo -e "${ARROW} ${CYAN}OS Short: ${GREEN}$os_shortname${NC}"
@@ -2624,12 +2624,14 @@ function simple_install(){
 
 	if ! ufw version > /dev/null 2>&1; then
 		echo -e "${ARROW} ${YELLOW}Installing ufw firewall..${NC}"
+		echo -e "${YELLOW}================================================================${NC}"
 		sudo apt install -y ufw > /dev/null 2>&1
 	fi
 
 	cron_check=$(systemctl status cron 2> /dev/null | grep 'active' | wc -l)
 	if [[ "$cron_check" == "0" ]]; then
 		echo -e "${ARROW} ${YELLOW}Installing crontab...${NC}"
+		echo -e "${YELLOW}================================================================${NC}"
 		sudo apt install -y cron > /dev/null 2>&1
 	fi
 
@@ -2638,6 +2640,8 @@ function simple_install(){
 		create_config
 	fi
 
+	echo -e "${GREEN}Module: Install Docker${NC}"
+	echo -e "${YELLOW}================================================================${NC}"
 	echo -e "${ARROW} ${YELLOW}Installing docker...${NC}"
 	echo -e "${ARROW} ${CYAN}Architecture: ${GREEN}$arch${NC}"   
 
